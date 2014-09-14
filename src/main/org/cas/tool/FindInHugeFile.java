@@ -7,7 +7,7 @@ import java.io.RandomAccessFile;
  * @author TaoJiang
  *
  */
-public class StringFinder_HugeFiles {
+public class FindInHugeFile {
 	static String filePath = "c:/temp/test.bin";	//default path, will be replace by command line.
 	static String targetStr1 = "Nexsan";
 	static String targetStr2 = "Nexsan Technologies";
@@ -37,7 +37,7 @@ public class StringFinder_HugeFiles {
 		if(args != null && args.length > 0)
 			filePath = args[0];
 		
-		StringFinder_HugeFiles finder = new StringFinder_HugeFiles();
+		FindInHugeFile finder = new FindInHugeFile();
 		finder.findStringFromFile(filePath);
 
 		System.out.println("Number of case sensitive match of Nexasan is: " + numTarg1_sens);

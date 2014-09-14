@@ -28,7 +28,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.FileUtils;
 
@@ -95,8 +94,6 @@ public class FileEncodingTransformer extends JFrame implements ComponentListener
 		isNotSuffix.setText("is NOT");
 		lbSuffix.setText("Suffixs: ");
 		btnSearch.setText("Start To Convert");
-		pbProgress.setVisible(false);
-		scrollPane.setVisible(false);
 		resultArea.setAutoscrolls(true);
 		cmbTo.setSelectedIndex(1);
 		
@@ -198,6 +195,8 @@ public class FileEncodingTransformer extends JFrame implements ComponentListener
 	//for file-------
 	public void convertFile(File f) {
 		String fileName = f.getAbsolutePath();
+		if(!isSearching)
+			return;
 		if(notMatchSuffixCondition(fileName))
 			return;
 		if(f.length() == 0)
@@ -214,7 +213,8 @@ public class FileEncodingTransformer extends JFrame implements ComponentListener
 		}catch(IOException e){
 			resultArea.append("!----exception occurred when converting file" + fileName + "\n" + e + "\n");
 		}
-
+		Thread.yield();
+		
 //		//My own solution!
 //		byte[] content = new byte[(int)f.length()];
 //		boolean isFileNameNotPrintedYet = true;
@@ -300,7 +300,6 @@ public class FileEncodingTransformer extends JFrame implements ComponentListener
 	
 	//action
 	public void actionPerformed(ActionEvent e) {
-		System.out.println("action catched!");
 		if(e.getSource() == btnBrowse){
 			setVisible(false);
 			chooseFile();
@@ -328,14 +327,12 @@ public class FileEncodingTransformer extends JFrame implements ComponentListener
 						limitations = limitations.replaceAll(NON_DUPLICATE_STR1, "/");
 						suffixes = limitations.split(NON_DUPLICATE_STR2);
 						isSearching = true;
-						pbProgress.setVisible(true);
-						scrollPane.setVisible(true);
 						btnSearch.setText("Stop Searching");
 						setSize(this.getWidth(), 728);
 						resultArea.append("****************************************************************************************\n");
 						resultArea.append("**********            Convert Start on "+ Calendar.getInstance().getTime() +"            ***********\n");
 
-						SwingUtilities.invokeLater(new Runnable() {
+						Thread workThread = new Thread(new Runnable() {
 							public void run() {
 								for(int i = 0; i < files.length; i++){
 									if(!isSearching)
@@ -345,10 +342,10 @@ public class FileEncodingTransformer extends JFrame implements ComponentListener
 								//reset......
 								folderDepth = 0;
 								isSearching = false;
-								pbProgress.setVisible(false);
 								btnSearch.setText("Start To Search");
 							}
 						});
+						workThread.start();
 						
 						resultArea.append("**********            Convert finished! Please go to c:/temp for the result.     ***********\n");
 						resultArea.append("****************************************************************************************\n");
@@ -365,7 +362,6 @@ public class FileEncodingTransformer extends JFrame implements ComponentListener
 		s.chooseFile();
 	}
 	
-	
 	public void readFile() throws IOException{
 	    RandomAccessFile f = new RandomAccessFile("test.txt", "r");
 	    byte[] b = new byte[(int)f.length()];
@@ -380,7 +376,6 @@ public class FileEncodingTransformer extends JFrame implements ComponentListener
 	    }
 	    f.close();
 	}
-	
 	
 	private void writeBinaryFile(byte[] pBytes, String pPath) {
 		Path path = Paths.get(pPath);
